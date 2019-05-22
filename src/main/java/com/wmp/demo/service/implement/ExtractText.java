@@ -1,5 +1,6 @@
 package com.wmp.demo.service.implement;
 
+import com.wmp.demo.common.CharacterHandler;
 import com.wmp.demo.common.HttpHandler;
 import com.wmp.demo.common.StringHandler;
 import com.wmp.demo.dto.OutputResult;
@@ -41,12 +42,9 @@ public class ExtractText implements Extract<OutputResult, TargetDto> {
         boolean isRemoveHtml = "not_html".equalsIgnoreCase(targetDto.getOpt());
 
         String refinedTxt = getRefinedTxt(context, isRemoveHtml);
-        Map<String, List<Object>> characterListMap = getSeparateChars(refinedTxt);
+        String result = getFinalData(refinedTxt);
 
-        log.info("en: {}", characterListMap.get("en"));
-        log.info("num: {}", characterListMap.get("num"));
-        outputResult.setQuotient(characterListMap.get("en").toString());
-        outputResult.setRemainder(characterListMap.get("num").toString());
+        log.info("check: {}", result);
         return outputResult;
     }
 
@@ -58,10 +56,10 @@ public class ExtractText implements Extract<OutputResult, TargetDto> {
         return StringHandler.getOnlyEngOrNumber(context);
     }
 
-    private Map<String, List<Object>> getSeparateChars(String txt) {
+    private String getFinalData(String txt) {
         String[] list = txt.split("");
-        List<Object> enList = new ArrayList<>();
-        List<Object> numList = new ArrayList<>();
+        List<String> enList = new ArrayList<>();
+        List<Integer> numList = new ArrayList<>();
         for (String s : list) {
             try {
                 int tmp = Integer.parseInt(s);
@@ -70,9 +68,30 @@ public class ExtractText implements Extract<OutputResult, TargetDto> {
                 enList.add(s);
             }
         }
-        Map<String, List<Object>> returnMap = new HashMap<>();
-        returnMap.put("en", enList);
-        returnMap.put("num", numList);
-        return returnMap;
+        CharacterHandler.sortAlphabet(enList);
+        log.debug("EN LIST: {}", enList);
+        CharacterHandler.sortNumber(numList);
+        log.debug("NUM LIST: {}", numList);
+        return getMergingTxt(enList, numList);
+    }
+
+    private String getMergingTxt(List<String> enList, List<Integer> numList) {
+        int enCount = enList.size();
+        int numCount = numList.size();
+        if (enCount > numCount) {
+            return doMergeTxt(numCount, enCount, enList, numList);
+        }
+        return doMergeTxt(enCount, numCount, enList, numList);
+    }
+
+    private String doMergeTxt(int smallCnt, int bigCnt, List<String> enList, List<Integer> numList) {
+        StringBuilder mergeTxt = new StringBuilder();
+        for (int i = 0; i < smallCnt; i++) {
+            mergeTxt.append(enList.get(i)).append(numList.get(i));
+        }
+        for (int j = bigCnt - smallCnt; j < bigCnt; j++) {
+            mergeTxt.append(enList.get(j));
+        }
+        return mergeTxt.toString();
     }
 }
