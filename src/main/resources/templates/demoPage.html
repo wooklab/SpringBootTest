@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <div>
+        <span th:text="${test}"></span>
+    </div>
+    <div>
+        <form method="POST" th:action="@{/}">
+            <label>URL</label>
+            <input type="text" name="url" size="100"/>
+            <br/>
+
+            <label>Type</label>
+            <select name="opt">
+                <option value="not_html">HTML 제외</option>
+                <option value="all_text">TXT 전체</option>
+            </select>
+            <br/>
+
+            <label>출력묶음단위(자연수)</label>
+            <input type="number" name="outputUnit"/>
+            <input type="submit" value="추출"/>
+            <br/>
+
+            <hr/>
+            <label>몫:</label>
+            <span th:text="${quotient}"></span>
+            <br/>
+
+            <hr/>
+            <label>나머지:</label>
+            <span th:text="${remainder}"></span>
+            <br/>
+
+        </form>
+    </div>
+</body>
+</html>
