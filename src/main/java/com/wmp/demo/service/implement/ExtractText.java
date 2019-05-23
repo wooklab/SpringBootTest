@@ -1,17 +1,17 @@
 package com.wmp.demo.service.implement;
 
-import com.wmp.demo.common.CharacterHandler;
 import com.wmp.demo.common.HttpHandler;
 import com.wmp.demo.common.StringHandler;
 import com.wmp.demo.dto.OutputResult;
 import com.wmp.demo.dto.TargetDto;
+import com.wmp.demo.function.MergeListData;
+import com.wmp.demo.function.OutputData;
+import com.wmp.demo.function.SeparatorStringIntoCharacterAndNumber;
 import com.wmp.demo.service.Extract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
-
-import java.util.*;
 
 @Component
 @Qualifier("extract_text")
@@ -39,59 +39,30 @@ public class ExtractText implements Extract<OutputResult, TargetDto> {
             outputResult.setQuotient("HTTP Connection Error..!");
             return outputResult;
         }
+
         boolean isRemoveHtml = "not_html".equalsIgnoreCase(targetDto.getOpt());
 
-        String refinedTxt = getRefinedTxt(context, isRemoveHtml);
-        String result = getFinalData(refinedTxt);
+        String refinedText = StringHandler.getRefinedText(context, isRemoveHtml);
+        log.debug("refined txt: {}", refinedText);
 
-        log.info("check: {}", result);
+        String sortedData = getSortedMergeData(refinedText);
+        log.info("check: {}", sortedData);
+
+        OutputData outputData = new OutputData(sortedData, targetDto.getOutputUnit());
+        outputData.doProcess();
+        outputResult.setQuotient(outputData.getQuotientValue());
+        outputResult.setRemainder(outputData.getRemainderValue());
         return outputResult;
     }
 
-    private String getRefinedTxt(String context, boolean isRemoveHtml) {
-        if (isRemoveHtml) {
-            String removeHtml = StringHandler.removeHTMLTags(context);
-            return StringHandler.getOnlyEngOrNumber(removeHtml);
-        }
-        return StringHandler.getOnlyEngOrNumber(context);
+    private String getSortedMergeData(String refinedText) {
+        SeparatorStringIntoCharacterAndNumber separator = new SeparatorStringIntoCharacterAndNumber(refinedText);
+        separator.doSeparateString(true);
+
+        MergeListData merge = new MergeListData(separator.getCharacterList(), separator.getNumberList());
+        merge.doMerge();
+
+        return merge.getMergeData().toString();
     }
 
-    private String getFinalData(String txt) {
-        String[] list = txt.split("");
-        List<String> enList = new ArrayList<>();
-        List<Integer> numList = new ArrayList<>();
-        for (String s : list) {
-            try {
-                int tmp = Integer.parseInt(s);
-                numList.add(tmp);
-            } catch (NumberFormatException nfe) {
-                enList.add(s);
-            }
-        }
-        CharacterHandler.sortAlphabet(enList);
-        log.debug("EN LIST: {}", enList);
-        CharacterHandler.sortNumber(numList);
-        log.debug("NUM LIST: {}", numList);
-        return getMergingTxt(enList, numList);
-    }
-
-    private String getMergingTxt(List<String> enList, List<Integer> numList) {
-        int enCount = enList.size();
-        int numCount = numList.size();
-        if (enCount > numCount) {
-            return doMergeTxt(numCount, enCount, enList, numList);
-        }
-        return doMergeTxt(enCount, numCount, enList, numList);
-    }
-
-    private String doMergeTxt(int smallCnt, int bigCnt, List<String> enList, List<Integer> numList) {
-        StringBuilder mergeTxt = new StringBuilder();
-        for (int i = 0; i < smallCnt; i++) {
-            mergeTxt.append(enList.get(i)).append(numList.get(i));
-        }
-        for (int j = bigCnt - smallCnt; j < bigCnt; j++) {
-            mergeTxt.append(enList.get(j));
-        }
-        return mergeTxt.toString();
-    }
 }

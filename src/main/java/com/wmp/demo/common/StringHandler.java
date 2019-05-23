@@ -16,16 +16,16 @@ public class StringHandler {
         return false;
     }
 
+    public static String getRefinedText(String text, boolean isRemoveHtml) {
+        if (isRemoveHtml) {
+            String removeHtml = removeHTMLTags(text);
+            return getOnlyEngOrNumber(removeHtml);
+        }
+        return StringHandler.getOnlyEngOrNumber(text);
+    }
 
-    /**
-     * Removes HTML Tags.<br/>
-     *
-     * @param text HTML Tag를 제거할 Text(Documents)
-     * @return 제거 후 결과 Text
-     */
     public static String removeHTMLTags(String text) {
         return text.replaceAll(RegexEnum.HTML.getRegex(), "");
-
     }
 
     public static String getOnlyEngOrNumber(String text) {
