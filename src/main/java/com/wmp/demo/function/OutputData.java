@@ -43,6 +43,7 @@ public class OutputData {
     }
 
     private void setValuePretty(int quotientCount) {
+        log.debug("set data pretty");
         for (int idx = 0; idx < quotientCount; idx++) {
             this.quotientValue
                     .append(this.originData.substring(idx * outputUnit, ((idx + 1) * outputUnit) - 1))

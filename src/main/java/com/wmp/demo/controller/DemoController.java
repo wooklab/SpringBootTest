@@ -34,10 +34,6 @@ public class DemoController {
     @PostMapping("")
     public String extract(Model model, TargetDto targetDto) {
         log.debug("input target: {}", targetDto);
-        if (!extract.validateParam(targetDto)) {
-            model.addAttribute("quotient", "미 입력된 값이 있습니다.");
-            return "demoPage";
-        }
 
         OutputResult outputResult = extract.getOutputData(targetDto);
         if (outputResult.getQuotient() != null) {

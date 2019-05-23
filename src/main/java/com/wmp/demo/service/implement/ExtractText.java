@@ -31,9 +31,16 @@ public class ExtractText implements Extract<OutputResult, TargetDto> {
 
     @Override
     public OutputResult getOutputData(TargetDto targetDto) {
+        OutputResult outputResult = new OutputResult();
+
+        if (!this.validateParam(targetDto)) {
+            outputResult.setQuotient("미 입력된 값이 있습니다.");
+            return outputResult;
+        }
+
         String url = targetDto.getUrl();
         String context = HttpHandler.getHttpHTML(url);
-        OutputResult outputResult = new OutputResult();
+
 
         if (context == null) {
             outputResult.setQuotient("HTTP Connection Error..!");
